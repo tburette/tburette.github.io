@@ -3,14 +3,16 @@ markdown:         redcarpet
 pygments:      	  true
 
 # Permalinks
-permalink:        pretty
+#permalink:	  pretty
+permalink:        /blog/:categories/:year/:month/:day/:title/
 
 # Setup
 title:            TBurette
 tagline:          Dev Blog
-url:              http://tburette.github.io/
+url:              http://tburette.github.io
 paginate:         1
-baseurl:
+paginate_path: 	  "blog/page:num"
+baseurl:	  /
 author:
   name:           Thomas Burette
   url:            https://github.com/tburette
