@@ -1,6 +1,6 @@
 # Dependencies
 markdown:         redcarpet
-highlighter:      pygments
+pygments:      	  true
 
 # Permalinks
 permalink:        pretty
@@ -14,7 +14,6 @@ paginate:         1
 author:
   name:           Thomas Burette
   url:            https://github.com/tburette
-  email:          burettethomas@gmail.com
 
 # Custom vars
 version:          1.0.0
