@@ -2,6 +2,7 @@
 layout: post
 title: So You Want To Write Your Own CSV code?
 ---
+
 So You Want To Write Your Own CSV code? Fields separated by commas and rows separated by newline. Easy right? You can write the code yourself in just a few lines.
 
 <br>
@@ -70,7 +71,7 @@ If you include a BOM Excel will interpret the csv as a text file, not a CSV. Thi
 <br>
 <br>
 
-__Do you still want to roll your own code to handle CSV?__
+__Do you really still want to roll your own code to handle CSV?__
 
 CSV is not a well defined file-format. The [RFC4180](http://tools.ietf.org/html/rfc4180) does not represent reality. It seems as every program handles CSV in subtly different ways. Please do not inflict another one onto this world. Use a solid library. 
 
