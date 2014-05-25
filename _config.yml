@@ -10,7 +10,7 @@ title:            TBurette
 tagline:          Dev Blog
 url:              http://tburette.github.io/
 paginate:         1
-
+baseurl:
 author:
   name:           Thomas Burette
   url:            https://github.com/tburette
