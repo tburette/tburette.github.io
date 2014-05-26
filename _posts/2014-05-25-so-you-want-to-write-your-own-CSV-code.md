@@ -82,3 +82,5 @@ If a supplied CSV is arbitrary, the only real way to make sure the data is corre
 
 
 Writing CSV code that works with files out there in the real world is a difficult task. The rabbit hole goes deep. Ruby CSV library is 2321 lines.
+
+Discussion on [Hacker News](https://news.ycombinator.com/item?id=7796268) and [Reddit](http://www.reddit.com/r/programming/comments/26g24y/so_you_want_to_write_your_own_csv_code/).
