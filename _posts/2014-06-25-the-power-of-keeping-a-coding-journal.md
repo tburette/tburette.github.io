@@ -3,6 +3,8 @@ layout: post
 title: The power of keeping a coding journal
 ---
 
+_This post was inspired by the tool [jrnl](http://maebert.github.io/jrnl/index.html) which has been mentioned on hacker news._
+
 An innumerable number of thoughts go through you head as you develop :  
 
 * The pending issue you'll get back to later
@@ -63,4 +65,3 @@ The coding journal doesn't prevent me writing from writing bugs. It helps me mak
 I wouldn't say that the coding journal is painless. Logging needs some effort, you're always evaluating in your mind if you need to write this thing or that thing down. In fact it can be a hindrance in some cases and cause a form of analysis paralysis. You look at all the loose ends and wonder how you'll ever tie everything down together.
 
  It has never become a habit and I find myself tending to be reluctant to get into the logging thinking mode. I found I shy away from using the journal for small projects/tasks altogether.
-
