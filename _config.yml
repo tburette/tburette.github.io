@@ -1,6 +1,6 @@
 # Dependencies
 markdown:         redcarpet
-pygments:      	  true
+highlighter:      pygments
 
 # Permalinks
 #permalink:	  pretty
@@ -16,6 +16,9 @@ baseurl:	  /
 author:
   name:           Thomas Burette
   url:            https://github.com/tburette
+
+plugins:
+- jekyll-paginate
 
 # Custom vars
 version:          1.0.0
