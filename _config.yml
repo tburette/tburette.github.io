@@ -7,12 +7,13 @@ highlighter:      rouge
 permalink:        /blog/:categories/:year/:month/:day/:title/
 
 # Setup
-title:            TBurette
+title:            Thomas Burette
 tagline:          Dev Blog
 url:              http://tburette.github.io
 paginate:         1
 paginate_path: 	  "blog/page:num"
 baseurl:	  
+user_title:       Software Developer 
 author:
   name:           Thomas Burette
   url:            https://github.com/tburette
