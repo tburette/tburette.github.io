@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Lyon Drinking Game</title>
+  </head>
+  <body>
+    <h1 style="text-align: center">Lyon Drinking Game</h1>
+	<div id="startgame">
+			<div><em>Add player:</em>
+	        	<form onsubmit="return addPlayerFormSubmit()">
+	        			<input type="text" name="name">
+	        			<input type="submit" class="btn btn-primary" value="Add">
+	        	</form>
+	        </div>
+			<button id='commencer' type="button" class="btn btn-primary" disabled onclick="startGameClick()">Begin</button>
+	</div>
+	<div style="height:30px;"></div>
+	<em>Players:</em>
+	<div id="playersList">
+			<div id='mindrinkdisplay' class='container-fluid'>
+				<div class="row">
+					<div class="empty col-4">
+							Min drink level:
+					</div>
+					<div class="drinkBar col-8">
+						<div class="progress">
+							<div class="progress-bar bg-warning" style="width: 20%" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+	</div>
+	<div style="height:30px;"></div>
+	<div id="question" style='visibility:hidden'>
+		<div id="questionText">
+				xxxx?
+		</div>
+		<form id="answerForm" onsubmit="answered();return false;">
+				<input type="text" name="answer" id='answerText'>
+				<input type="submit" class="btn btn-primary" value="OK">
+		</form>
+
+	</div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="fuzzyset.js"></script>
+	<script>
+			//-------------------- UTILS --------------------
+			if(typeof(String.prototype.trim) === "undefined")
+				{
+					String.prototype.trim = function() 
+					{
+						return String(this).replace(/^\s+|\s+$/g, '');
+					};
+				}
+			//-----------------------------------------------
+
+			//todo use this value to update the hardoded min drink level in the ui
+			var minDrinkLevel = 20;
+			var initialDrinkLevel = 25
+			var increaseWhenAnswered = 5;
+			var decreaseWhenWrongAnswer = -3;
+			var decreaseDelay = 3000;
+			var players = [];
+
+			function getPlayerFromID(id){
+				return players[id];
+			}
+
+			function Player(name, id){
+				this.name = name;
+				//id of the player's div, index in the players array
+				this.id = id;
+				this.drinkLevel = 5;
+				//this.element
+			}
+
+			Player.prototype.changeDrinkLevelBy = function(delta){
+				this.setDrinkLevel(this.drinkLevel + delta);
+			}
+
+			Player.prototype.setDrinkLevel = function (level){
+					level = level < 0 ? 0 : level;
+					level = level > 100 ? 100 : level;
+					if(this.drinkLevel >= minDrinkLevel && level < minDrinkLevel){
+							this.element.querySelector('.progress-bar').classList.add('bg-warning');
+							belowMinDrinkLevelAlert(this);
+					}
+					if(this.drinkLevel < minDrinkLevel && level >= minDrinkLevel){
+							this.element.querySelector('.progress-bar').classList.remove('bg-warning');
+					}
+					this.drinkLevel = level;
+					bar = this.element.querySelector('.progress-bar');
+					bar.style.width =  this.drinkLevel + "%";
+					bar.setAttribute('aria-valuenow', level);
+			};
+
+			function addPlayerFormSubmit(){
+				const playerName = document.querySelector('input[name="name"]').value;
+				console.log('new player:', playerName);
+				if(players.find(p => p.name == playerName)){
+					alert(playerName + ' existe déjà')
+				}else{
+					addPlayer(playerName);
+					document.querySelector('#commencer').disabled = false;
+				}
+
+				return false;//to prevent form submission
+			}
+
+			function addPlayer(playerName){
+				const p = new Player(playerName, players.length);
+				players.push(p);
+				const markup = `
+					<div id='player${p.id}' class='container-fluid play er${p.id}'>
+						<div class="row">
+							<div class="question col-1">
+								<button class="btn btn-outline-primary" onclick="question(${p.id})">Q</button>
+							</div>
+							<div class="name col-3">${p.name}</div>
+							<div class="drinkBar col-8">
+								<div class="progress">
+									<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				`;
+				document.querySelector('#playersList').insertAdjacentHTML('beforeend', markup);
+				p.element = document.querySelector('#playersList #player' + p.id)
+			}
+
+
+			//http://soundbible.com/2056-Missile-Alert.html
+			var audio = new Audio('siren.mp3');
+			function belowMinDrinkLevelAlert(player){
+				console.log("below");
+				audio.play();
+
+			}
+
+			function timeElapsed(){
+					players.forEach(p => {p.changeDrinkLevelBy(-1)});
+			}
+
+			function startGameClick(){
+					console.log('start');
+					document.querySelector('#startgame').style.display='none';
+					players.forEach(p => p.setDrinkLevel(initialDrinkLevel));
+					intervalID = setInterval(timeElapsed, decreaseDelay);	
+			}
+
+			var questions = [
+					{question:'1?', answer:'1'},
+					{question:'2?', answer:'2'},
+					{question:"What is a female deer called ?", answer:"doe"},
+					{question:"What was Al Capone's nickname ?", answer:"Scarface"},
+					{question:"Which of these countries produces most of the world's diamonds ?", answer:"South Africa"},
+
+			];
+
+			function showQuestion(question){
+				document.querySelector('#question').style.visibility = 'visible';
+				document.querySelector('#questionText').innerText = question;
+			}
+
+			function hideQuestion(){
+				document.querySelector('#question').style.visibility = 'hidden';
+			}
+			
+			function question(playerID){
+				const player = getPlayerFromID(playerID);
+
+				currentQuestion = questions[Math.floor(Math.random()*questions.length)];
+				currentPlayer = player;
+				showQuestion('For ' + player.name + ', ' + currentQuestion.question);
+			}
+
+			function answered(){
+				var answer = document.querySelector('#answerText').value;
+				answer = answer.trim().toLowerCase();
+				document.querySelector('#answerText').value = "";
+				correctAnswer = currentQuestion.answer.trim().toLowerCase();
+				fs = FuzzySet([correctAnswer]);
+				console.log(answer, correctAnswer, fs.get(answer, null));
+
+				//if(answer.trim() == currentQuestion.answer){
+					if(fs.get(answer, null, 0.8)){
+					currentPlayer.changeDrinkLevelBy(increaseWhenAnswered);
+				}else{
+					currentPlayer.changeDrinkLevelBy(decreaseWhenWrongAnswer);
+				}
+				currentQuestion = null;
+				currentPlayer = null;
+				hideQuestion();
+				console.log('answered');
+			}
+	</script>
+  </body>
+</html>
+
