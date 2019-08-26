@@ -1,0 +1,487 @@
+<!doctype html> 
+<!-- Single file (for easy sharing)-->
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Evie game</title>
+    <script src="phaser/dist/phaser-arcade-physics.js"></script>
+    <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script> -->
+    <style type="text/css">
+        body {
+            margin: 0;
+            background-color: #A1F199;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 1024,
+        height: 768,    
+        backgroundColor: 0xA1F199,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: {y: 0},
+                debug: false
+            }
+        },
+        scene: [{
+            preload: preload,
+            create: create,
+            update: update
+        }]
+    };
+
+    var player;
+    var cursors;
+    var debugKey;
+    var background;
+    var backgroundEnd;
+    var gameScene;
+    var text;
+    var walk;
+    var gotcha;
+    var graphics;
+    var line;
+    var walls;
+    
+    var game = new Phaser.Game(config);
+
+
+////////////////////////////////////////////////////////////////////////////////
+//Memories
+////////////////////////////////////////////////////////////////////////////////
+
+    var pokestop;
+    var pokeball;
+
+    let memories = [
+        {
+            pokePos: {x: 840, y: 245},
+            memoryPos: {x: 840, y: 685},
+            image: 'memories/bayonne.jpg',
+            key: null, //dynamically set at runtime
+        },
+        {
+            pokePos: {x: 1330, y: 227},
+            memoryPos: {x: 1490, y: 685},
+            image: 'memories/bxl.jpeg',
+        },
+        {
+            pokePos: {x: 1760, y: 230},
+            memoryPos: {x: 2000, y: 678},
+            image: 'memories/2019-06-28.jpeg',
+        },
+        {
+            pokePos: {x: 850, y: 1350},
+            memoryPos: {x: 1160, y: 1350},
+            image: 'memories/2019-08-02.jpeg',
+        },
+        {
+            pokePos: {
+                x: 1281,
+                y: 936  },
+            memoryPos: {
+                x: 1606,
+                y: 1351},
+            image: 'memories/2019-08-16.jpeg',
+        },
+        {
+            pokePos: {
+                x: 1769,
+                y: 945},
+            memoryPos: {
+                x: 1987,
+                y: 1327},
+            image: 'memories/2019-08-18.jpeg',
+        },
+        {
+            pokePos: {
+                x: 845,
+                y: 1557},
+            memoryPos: {
+                x: 981,
+                y: 2260},
+            image: 'memories/kaln.png',
+        },
+        {
+            pokePos: {
+                x: 1284,
+                y: 1515},
+            memoryPos: {
+                x: 1639,
+                y: 2039},
+            image: 'memories/luxembourg.jpg',
+        },
+        {
+            pokePos: {
+                x: 1766,
+                y: 1515},
+            memoryPos: {
+                x: 2063,
+                y: 1515},
+            image: 'memories/2019-08-14.jpeg',
+        },
+        {
+            pokePos: {
+                x: 1290,
+                y: 2260},
+            memoryPos: {
+                x: 2227,
+                y: 2548},
+            image: 'memories/lyon saone.jpeg',
+        },
+    ];
+    var currentMemoryIndex = -1;
+
+    function getCurrentMemory(){
+        if(currentMemoryIndex < memories.length){
+            return memories[currentMemoryIndex];
+        }
+        return null;
+    }
+
+    function activateNextMemory(){
+        currentMemoryIndex++;
+        if(currentMemoryIndex < memories.length){
+            activateMemory(memories[currentMemoryIndex]);
+            return true;
+        }
+        return false;
+    }
+
+    function activateMemory(memory){
+        pokeball = gameScene.physics.add.image(
+            memory.pokePos.x,
+            memory.pokePos.y,
+            'pokeball')
+        pokeball.scale = 0.2;
+
+        gameScene.physics.add.collider(player, pokeball, collisionPokeball);
+    }
+
+    function collisionPokeball(player, pokeball){
+        gameScene.sound.add('item2', { loop: false }).play();
+        pokeball.destroy();
+        var memory = getCurrentMemory();
+        pokestop = gameScene.physics.add.image(
+            memory.memoryPos.x,
+            memory.memoryPos.y,
+            'pokestop')
+        pokestop.scale = 0.5;
+        //todo : show image picked up
+        gameScene.physics.add.collider(player, pokestop, collisionPokestop);
+    }
+
+    function collisionPokestop(player, pokestop){
+        gameScene.sound.add('item', { loop: false }).play();
+        pokestop.destroy();
+        //todo activate next memory + increase counter
+        memoryImage = gameScene.add.image( 0, 0, getCurrentMemory().key);
+        memoryImage.setAlpha(0);
+        centerOnScreen(memoryImage);
+
+        var tweenMemoryImage = gameScene.tweens.add({
+            targets: memoryImage,
+            alpha: {from: 0, to: 1},
+            duration: 1000,
+            yoyo:1,
+
+        });
+        tweenMemoryImage.on('complete', memoryImageFinished);
+    }
+
+    function memoryImageFinished(){
+        var activatedNextMemory = activateNextMemory();
+        if(!activatedNextMemory){
+            gameEnd();
+        }
+    }
+
+    function centerOnScreen(object){
+        var screenWidth = gameScene.cameras.main.width;
+        var screenHeight = gameScene.cameras.main.height;
+        //does NOT move when camera moves
+        object.setScrollFactor(0);
+        //center
+        object.setOrigin(0.5);
+        object.x = screenWidth / 2;
+        object.y = screenHeight / 2;
+        //make sure it is not larger than the screen
+        if(
+            screenWidth < object.width || 
+            screenHeight < object.height){
+            
+            var widthScale = screenWidth / object.width;
+            var heightScale = screenHeight / object.height;
+            var smallerScale = widthScale < heightScale ? widthScale : heightScale;
+            object.setScale(smallerScale);
+        }
+        
+    }
+
+
+////////////////////////////////////////////////////////////////////////////////
+//End memories
+////////////////////////////////////////////////////////////////////////////////
+
+    function preload ()
+    {
+        this.load.audio('walk', [
+                'walk.mp3',
+            ]);
+
+        this.load.audio('gotcha', [
+                'gotcha.mp3',
+            ]);
+
+        this.load.audio('item', [
+                'item.mp3',
+            ]);
+        
+        this.load.audio('item2', [
+                'item2.mp3',
+            ]);
+
+        this.load.image('background', 'background.png');
+        this.load.image('backgroundEnd', 'backgroundEnd.png');
+        this.load.image('evie', 'evie.png');
+        this.load.image('pokeball', 'pokeball.png');
+        this.load.image('pokestop', 'pokestop.png');
+        this.load.image('wall', 'wall.png');
+
+        memories.forEach((memory, i) => {
+            //console.log(memory, i);
+            memory.key = 'memory' + i;
+            this.load.image(memory.key, memory.image);
+        });
+        gameScene = this;
+    }
+
+    function create ()
+    {
+        cursors = this.input.keyboard.createCursorKeys();
+        debugKey = this.input.keyboard.addKey('D');
+
+        this.cameras.main.setBounds(0, 0, 3072, 3072);
+        this.physics.world.setBounds(0, 0, 3072, 3072);
+
+        background = this.add.image(0, 0, 'background').setOrigin(0,0);
+        backgroundEnd = this.add.image(0, 0, 'backgroundEnd').setOrigin(0,0);
+        backgroundEnd.setAlpha(0);
+
+        text = this.add.text(
+            10, 
+            10,
+            '',
+            {fontSize: '22px', fill: '#000' });
+        text.setScrollFactor(0);
+
+        player = this.physics.add.sprite(110, 222, 'evie');
+        player.setScale(0.5);
+        player.setDrag(5500);
+        player.setBounce(0);
+        player.setSize(1, 1);
+        player.setOffset(60);
+        player.setCollideWorldBounds(true);
+
+        this.cameras.main.startFollow(player);
+
+
+        activateNextMemory();
+
+        walk = this.sound.add('walk', { loop: true });
+        walk.play();
+        gotcha = this.sound.add('gotcha', { loop: true });
+
+        graphics = this.add.graphics({ lineStyle: { width: 4, color: 0xaa3333 } });
+        line = new Phaser.Geom.Line(200, 300, 600, 300);
+
+        walls = this.physics.add.staticGroup();
+        //0, 0, widthx, widthy, x, y
+        //row 1
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(1080, 190);wall.enableBody(true, 0, 0);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(608, 180);wall.enableBody(true, 1131, 0);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(676, 194);wall.enableBody(true, 1792, 0);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(542, 381);wall.enableBody(true, 2523, 0);
+
+        //row 2
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(291, 377);wall.enableBody(true, 2, 252);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(191, 369);wall.enableBody(true, 606, 263);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(383, 369);wall.enableBody(true, 894, 264);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(330, 368);wall.enableBody(true, 1368, 264);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(659, 395);wall.enableBody(true, 1791, 243);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(520, 219);wall.enableBody(true, 2535, 428);
+
+        //row 3
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(214, 51);wall.enableBody(true, 0, 714);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(126, 55);wall.enableBody(true, 0, 782);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(72, 39);wall.enableBody(true, 0, 858);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(254, 30);wall.enableBody(true, 327, 713);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(793, 120);wall.enableBody(true, 0, 1037);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(400, 158);wall.enableBody(true, 887, 726);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(309, 143);wall.enableBody(true, 1376, 732);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(603, 123);wall.enableBody(true, 1811, 734);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(491, 534);wall.enableBody(true, 2578, 739);
+        
+        //row 4
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(769, 60);wall.enableBody(true, 0, 1262);
+		//wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(187, 264);wall.enableBody(true, 908, 1112);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(132, 295);wall.enableBody(true, 1215, 1007);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(198, 156);wall.enableBody(true, 1352, 1139);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(299, 98);wall.enableBody(true, 1422, 969);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(96, 246);wall.enableBody(true, 1632, 1062);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(117, 74);wall.enableBody(true, 1808, 975);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(104, 105);wall.enableBody(true, 1811, 1164);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(397, 263);wall.enableBody(true, 2035, 984);
+        
+        //row5
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(781, 99);wall.enableBody(true, 2, 1395);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(184, 151);wall.enableBody(true, 884, 1389);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(207, 77);wall.enableBody(true, 1029, 1396);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(232, 74);wall.enableBody(true, 1325, 1393);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(37, 79);wall.enableBody(true, 1673, 1389);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(643, 100);wall.enableBody(true, 1815, 1368);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(523, 116);wall.enableBody(true, 2547, 1363);
+        
+        //row 6
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(283, 608);wall.enableBody(true, 2, 1586);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(477, 257);wall.enableBody(true, 399, 1641);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(246, 477);wall.enableBody(true, 675, 1715);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(152, 473);wall.enableBody(true, 1059, 1692);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(62, 174);wall.enableBody(true, 1173, 1574);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(207, 366);wall.enableBody(true, 1349, 1595);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(40, 415);wall.enableBody(true, 1679, 1562);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(186, 515);wall.enableBody(true, 1818, 1464);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(322, 215);wall.enableBody(true, 2127, 1533);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(513, 215);wall.enableBody(true, 2556, 1536);
+		
+        //row 7
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(321, 747);wall.enableBody(true, 2, 2305);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(438, 423);wall.enableBody(true, 305, 2633);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(339, 206);wall.enableBody(true, 402, 2294);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(441, 219);wall.enableBody(true, 847, 2305);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(520, 169);wall.enableBody(true, 856, 2632);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(112, 201);wall.enableBody(true, 1408, 2296);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(646, 114);wall.enableBody(true, 1345, 2091);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(177, 447);wall.enableBody(true, 1672, 2353);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(111, 199);wall.enableBody(true, 1598, 2605);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(58, 495);wall.enableBody(true, 1951, 2303);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(378, 186);wall.enableBody(true, 2122, 2305);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(462, 187);wall.enableBody(true, 2608, 2314);
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(912, 214);wall.enableBody(true, 2149, 2611);
+        
+        //row 8
+        wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(552, 147);wall.enableBody(true, 864, 2918);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(504, 168);wall.enableBody(true, 1525, 2900);
+		wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(903, 159);wall.enableBody(true, 2152, 2909);
+        
+        this.physics.add.collider(player, walls);
+
+        this.input.on('pointerdown', function (pointer) {
+        
+            registerClickForWallCreation(
+            Math.round(pointer.x + gameScene.cameras.main.scrollX), 
+            Math.round(pointer.y + gameScene.cameras.main.scrollY));
+
+        }, this);
+    }
+
+    var point1;
+    var rectangles = [];
+    function registerClickForWallCreation(x, y){
+        console.log(x, y);
+        if(!point1) point1 = [x, y];
+        else {
+            rectangles.push([point1[0], point1[1], x, y]);
+            point1 = null;
+        }
+    }
+    function wallCreationCode(){
+        s = "";//global for copy pasting
+        for(const a of rectangles){
+            s+="wall = walls.create();wall.visible = false;wall.setOrigin(0, 0);wall.setSize(" + Math.abs(a[0] - a[2]) + ", " + Math.abs(a[1] - a[3]) +");wall.enableBody(true, " + a[0] + ", " + a[1] + ");\n\t\t"
+        }
+        console.log(s);
+    }
+
+    function update ()
+    {
+        // var pointer = gameScene.input.activePointer;
+        // if (pointer.isDown) {
+        //     var touchX = pointer.x;
+        //     var touchY = pointer.y;
+        //     makeWalls(touchX + gameScene.cameras.main.scrollX , 
+        //         touchY + gameScene.cameras.main.scrollY);
+        // }
+
+        if (cursors.left.isDown){
+            player.setVelocityX(-160*3);
+        }else if(cursors.right.isDown){
+            player.setVelocityX(160*3);
+        }
+        if (cursors.up.isDown){
+            player.setVelocityY(-160*3);
+        }else if (cursors.down.isDown){
+            player.setVelocityY(160*3);
+        }
+
+        if(debugKey.isDown){
+            gameEnd();
+        }
+
+        graphics.clear();
+
+        if((pokeball && pokeball.active) ||
+            (pokestop && pokestop.active)){
+            line.x1 = player.x;
+            line.y1 = player.y;
+
+            if(pokeball && pokeball.active){
+                line.x2 = pokeball.x;
+                line.y2 = pokeball.y
+            }
+            if(pokestop && pokestop.active){
+                line.x2 = pokestop.x;
+                line.y2 = pokestop.y
+            }
+            
+            distance = Math.abs(line.x1 - line.x2) + Math.abs(line.y1 - line.y2);
+            if(distance > 600){
+                graphics.strokeLineShape(line);
+            }
+            
+        }
+
+        text.setText(currentMemoryIndex + '/' + memories.length + ' memories collected');
+    }
+
+    function gameEnd(){
+        console.log('end');
+        text.setAlpha(0);//workaround text at the wrong position
+        
+        walk.stop();
+        gotcha.play();
+        gameScene.tweens.add({
+            targets: backgroundEnd,
+            alpha: {from: 0, to: 1},
+            duration: 15000,
+        });
+
+        //gameScene.cameras.main.setZoom(0.25);
+        gameScene.tweens.add({
+            targets: gameScene.cameras.main,
+            zoom: {from: 1, to: 0.25},
+            duration: 4000,
+        });
+    }
+
+
+</script>
+
+</body>
+</html>
