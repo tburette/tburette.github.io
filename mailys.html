@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="media-src ">
+    <title>Evaluation de copine</title>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous"> -->
+    <style>
+        :root {
+            background-color: black;
+            color: rgb(195, 195, 195);
+            font-family: sohne, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin-left: 0.5em;
+            margin-right: 0.5em;
+            font-size: 2rem
+        }
+
+        .disclaimer {
+            font-size: 0.8em;
+            color: rgb(101, 101, 101);
+            text-align: center;
+            margin-top: 4em;
+        }
+
+
+        
+
+        .nav a:link,
+        .nav a:visited {
+            display: block;
+            text-decoration: none;
+            background-color: #f7f7f7;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#f7f7f7), to(#e7e7e7));
+            background-image: -webkit-linear-gradient(top, #f7f7f7, #e7e7e7);
+            background-image: -moz-linear-gradient(top, #f7f7f7, #e7e7e7);
+            background-image: -ms-linear-gradient(top, #f7f7f7, #e7e7e7);
+            background-image: -o-linear-gradient(top, #f7f7f7, #e7e7e7);
+            color: #a7a7a7;
+            margin: 36px;
+            width: 240px;
+            height: 240px;
+            position: relative;
+            text-align: center;
+            line-height: 240px;
+            border-radius: 50%;
+            box-shadow: 0px 3px 8px #aaa, inset 0px 2px 3px #fff;
+            border: solid 1px transparent;
+            font-size: 2em;
+            margin: 0 auto;
+            margin-bottom: 2em;
+        }
+
+        .nav {
+            margin-top: 12em;
+            margin-bottom: 12em;
+        }
+
+        .nav a:before {
+            content: "";
+            display: block;
+            background: #fff;
+            border-top: 2px solid #ddd;
+            position: absolute;
+            top: -18px;
+            left: -18px;
+            bottom: -18px;
+            right: -18px;
+            z-index: -1;
+            border-radius: 50%;
+            box-shadow: inset 0px 8px 48px #ddd;
+        }
+
+        .nav a:active {
+            box-shadow: 0px 3px 4px #aaa inset, 0px 2px 3px #fff;
+        }
+
+        .nav a:hover {
+            text-decoration: none;
+            color: #555;
+            background: #f5f5f5;
+        }
+
+
+        #two-layout {
+            display: flex;
+            justify-content: center;
+            margin-top: 12em;
+        }
+        
+        .lds-spinner {
+            color: official;
+            /* display: inline-block; */
+            position: relative;
+            width: 80px;
+            height: 80px;
+            /* margin: 5em auto; */
+        }
+
+        .lds-spinner div {
+            transform-origin: 40px 40px;
+            animation: lds-spinner 1.2s linear infinite;
+        }
+
+        .lds-spinner div:after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 3px;
+            left: 37px;
+            width: 6px;
+            height: 18px;
+            border-radius: 20%;
+            background: #fff;
+        }
+
+        .lds-spinner div:nth-child(1) {
+            transform: rotate(0deg);
+            animation-delay: -1.1s;
+        }
+
+        .lds-spinner div:nth-child(2) {
+            transform: rotate(30deg);
+            animation-delay: -1s;
+        }
+
+        .lds-spinner div:nth-child(3) {
+            transform: rotate(60deg);
+            animation-delay: -0.9s;
+        }
+
+        .lds-spinner div:nth-child(4) {
+            transform: rotate(90deg);
+            animation-delay: -0.8s;
+        }
+
+        .lds-spinner div:nth-child(5) {
+            transform: rotate(120deg);
+            animation-delay: -0.7s;
+        }
+
+        .lds-spinner div:nth-child(6) {
+            transform: rotate(150deg);
+            animation-delay: -0.6s;
+        }
+
+        .lds-spinner div:nth-child(7) {
+            transform: rotate(180deg);
+            animation-delay: -0.5s;
+        }
+
+        .lds-spinner div:nth-child(8) {
+            transform: rotate(210deg);
+            animation-delay: -0.4s;
+        }
+
+        .lds-spinner div:nth-child(9) {
+            transform: rotate(240deg);
+            animation-delay: -0.3s;
+        }
+
+        .lds-spinner div:nth-child(10) {
+            transform: rotate(270deg);
+            animation-delay: -0.2s;
+        }
+
+        .lds-spinner div:nth-child(11) {
+            transform: rotate(300deg);
+            animation-delay: -0.1s;
+        }
+
+        .lds-spinner div:nth-child(12) {
+            transform: rotate(330deg);
+            animation-delay: 0s;
+        }
+
+        @keyframes lds-spinner {
+            0% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+
+
+        .emphasis {
+            font-size: 3em;
+            text-align: center;
+        }
+
+        .big-red {
+            font-size: 9em;
+            color: red;
+            text-align: center;
+            margin-top: .2em;
+            margin-bottom: -.2em;
+        }
+
+        #three .disclaimer {
+            font-size: 0.6em;
+        }
+    </style>
+</head>
+
+<body id="body" class="a">
+    <main id="main">
+        <h1>Evaluation de copine</h1>
+        <section id="one">
+            <nav class="nav">
+                <a href="javascript:void(0)" id="scanner">&nbsp;Scan&nbsp;</a>
+            </nav>
+            
+            <section class="disclaimer">
+                En cliquant sur le bouton "Scan", vous reconnaissez et acceptez que les données que vous soumettez
+                seront soumises à une analyse très sérieuse et que tous les efforts seront déployés pour obtenir des
+                résultats de la plus haute qualité. Cependant, veuillez noter que la qualité des résultats dépendra en
+                grande partie de la précision et de la pertinence des données fournies.
+            </section>
+        </section>
+        <section id="two" hidden>
+            <div id="two-layout">
+                <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+            </div>
+            <section class="disclaimer">
+                Analyse en cours
+                <br>
+                (Ne pas fermer la page)
+            </section>
+        </section>
+        <section id="three" hidden>
+            <h2>Résultats de l'analyse :</h2>
+            <div class="emphasis">☙ La meilleure copine du monde ❧</div>
+            <div class="big-red">💝</div>
+            <div class="disclaimer">Après avoir minutieusement trituré les données avec une précision digne d'un algorithme super-intelligent issu tout droit d'une galaxie lointaine, nous sommes ravis de vous annoncer que nos résultats ont été calculés de manière scientifique avec une rigueur telle qu'aucune erreur ne pourrait même s'aventurer à tenter un petit coucou. Nos calculateurs ont été nourris de café éthéré et de formules magiques secrètes, et ils ont fonctionné avec une discipline de moine bouddhiste. En d'autres termes, nos résultats sont plus fiables que la gravité elle-même ! </div>
+        </section>
+    </main>
+    <script type="module">
+        scanner.onclick = ()=>{
+            one.hidden = true;
+            two.hidden = false;
+            setTimeout(()=>{
+                two.hidden = true;
+                three.hidden = false;
+            }, 0);
+        }
+
+    </script>
+</body>
+
+</html>
