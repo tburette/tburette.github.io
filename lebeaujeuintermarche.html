@@ -20204,18 +20204,23 @@
 
     <script>
       /* ==========================================================
-   CONFIG
-   ========================================================== */
+      CONFIG
+      ========================================================== */
 
       const USER_LAT = 45.750917;
       const USER_LON = 4.855639;
 
       /* ==========================================================
-   HELPERS
-   ========================================================== */
+      HELPERS
+      ========================================================== */
 
       function safe(v, fallback = "") {
         return v ?? fallback;
+      }
+
+      function cleanAge(age) {
+        if ([0, 99].includes(age)) return "";
+        return safe(age);
       }
 
       function truncate(text, max = 300) {
@@ -20262,8 +20267,8 @@
       }
 
       /* ==========================================================
-   NORMALISATION
-   ========================================================== */
+      NORMALISATION
+      ========================================================== */
 
       const normalizedActivities = activities.map((a, index) => {
         const lat = toNumber(a?.location?.position?.latitude);
@@ -20312,8 +20317,8 @@
           logoUrl: a?.location?.logoUrl || null,
           mainImageUrl: a?.location?.mainImageUrl || null,
 
-          ageFrom: a?.ageFrom,
-          ageTo: a?.ageTo,
+          ageFrom: cleanAge(a?.ageFrom),
+          ageTo: cleanAge(a?.ageTo),
 
           tags: Array.isArray(a?.tags)
             ? a.tags.map((t) => t?.title).filter(Boolean)
@@ -20326,8 +20331,8 @@
       });
 
       /* ==========================================================
-   FILTERS
-   ========================================================== */
+      FILTERS
+      ========================================================== */
 
       const categoryFilter = document.getElementById("categoryFilter");
 
@@ -20348,8 +20353,8 @@
       const stats = document.getElementById("stats");
 
       /* ==========================================================
-   POPULATE FILTERS
-   ========================================================== */
+      POPULATE FILTERS
+      ========================================================== */
 
       [
         ...new Set(
@@ -20374,8 +20379,8 @@
       });
 
       /* ==========================================================
-   MAP
-   ========================================================== */
+      MAP
+      ========================================================== */
 
       const map = L.map("map");
 
@@ -20399,8 +20404,8 @@
       let markerLayer = L.layerGroup().addTo(map);
 
       /* ==========================================================
-   RENDER
-   ========================================================== */
+      RENDER
+      ========================================================== */
 
       function getFilteredData() {
         const category = categoryFilter.value;
@@ -20481,219 +20486,230 @@
           card.id = "activity-" + item.idx;
 
           card.innerHTML = `
-      <div class="activity-header">
+         <div class="activity-header">
 
-        ${
-          item.mainImageUrl
-            ? `<img class="main-image" src="${item.mainImageUrl}" loading="lazy">`
-            : `<div class="main-image empty-image">Pas d'image</div>`
-        }
+           ${
+             item.mainImageUrl
+               ? `<img class="main-image" src="${item.mainImageUrl}" loading="lazy">`
+               : `<div class="main-image empty-image">Pas d'image</div>`
+           }
 
-        <div class="info">
+           <div class="info">
 
-          <div class="top-row">
+             <div class="top-row">
 
-            <div class="top-main">
+               <div class="top-main">
 
-              <h2>${escapeHtml(item.name)}</h2>
+                 <h2>${escapeHtml(item.name)}</h2>
 
-              <div class="badges">
+                 <div class="badges">
+                   ${
+                     item.category
+                       ? `<span class="badge">${escapeHtml(item.category)}</span>`
+                       : ""
+                   }
+
+                   ${
+                     item.subcategory
+                       ? `<span class="badge">${escapeHtml(item.subcategory)}</span>`
+                       : ""
+                   }
+
+                   ${"" /*item.isOnline ? `<span class="badge">En ligne</span>` : ""*/}
+
+                   ${
+                     Math.max(item.freeSessionCount || 0) > 1
+                       ? `<span class="multi-free">${item.freeSessionCount}×</span>`
+                       : ""
+                   }
+
+                   ${
+                     Math.min(item.get || 0, item.payFor || 0) >= 1
+                       ? `<span class="must-buy">buy ${item.payFor} to get ${item.get}</span>`
+                       : ""
+                   }
+                 </div>
+
+                 <div class="primary-meta">
+
+                   <div><strong>${escapeHtml(item.locationName)}</strong></div>
+
+                   <div>
+                     ${
+                       item.isOnline
+                         ? "Activité en ligne"
+                         : `${escapeHtml(item.address)}${item.city ? " - " + escapeHtml(item.city) : ""}`
+                     }
+                   </div>
+
+                   <div class="distance">
+                     ${
+                       item.isOnline
+                         ? "En ligne"
+                         : item.distance.toFixed(1) + " km"
+                     }
+                   </div>
+
+                   ${
+                     item.website
+                       ? `<div><a href="${item.website}" target="_blank" rel="noopener">Site web</a></div>`
+                       : ""
+                   }
+
                 ${
-                  item.category
-                    ? `<span class="badge">${escapeHtml(item.category)}</span>`
+                  item.ageFrom || item.ageTo
+                    ? ` <div>
+                 ${item.ageFrom ?? "?"}
+                 -
+                 ${item.ageTo ?? "?"}
+               </div>`
                     : ""
                 }
 
-                ${
-                  item.subcategory
-                    ? `<span class="badge">${escapeHtml(item.subcategory)}</span>`
-                    : ""
-                }
 
-                ${item.isOnline ? `<span class="badge">En ligne</span>` : ""}
+                 </div>
 
-                ${
-                  Math.max(item.freeSessionCount || 0) > 1
-                    ? `<span class="multi-free">${item.freeSessionCount}×</span>`
-                    : ""
-                }
+               </div>
 
-                ${
-                  Math.min(item.get || 0, item.payFor || 0) >= 1
-                    ? `<span class="must-buy">buy ${item.payFor} to get ${item.get}</span>`
-                    : ""
-                }
-              </div>
+               ${
+                 item.logoUrl
+                   ? `<img class="logo" src="${item.logoUrl}" loading="lazy">`
+                   : `<div class="logo empty-image"></div>`
+               }
 
-              <div class="primary-meta">
+             </div>
 
-                <div><strong>${escapeHtml(item.locationName)}</strong></div>
+             <div class="offer-preview">
+               ${escapeHtml(truncate(item.offerTerms))}
+             </div>
 
-                <div>
-                  ${
-                    item.isOnline
-                      ? "Activité en ligne"
-                      : `${escapeHtml(item.address)}${item.city ? " - " + escapeHtml(item.city) : ""}`
-                  }
-                </div>
+           </div>
 
-                <div class="distance">
-                  ${
-                    item.isOnline
-                      ? "En ligne"
-                      : item.distance.toFixed(1) + " km"
-                  }
-                </div>
+         </div>
 
-                ${
-                  item.website
-                    ? `<div><a href="${item.website}" target="_blank" rel="noopener">Site web</a></div>`
-                    : ""
-                }
+         <details>
+           <summary>Détails</summary>
 
-              </div>
+           <div class="details-content">
 
-            </div>
+             <div class="details-grid">
 
-            ${
-              item.logoUrl
-                ? `<img class="logo" src="${item.logoUrl}" loading="lazy">`
-                : `<div class="logo empty-image"></div>`
-            }
+               <div class="label">Adresse</div>
+               <div>
+                 ${escapeHtml(item.address)}
+               </div>
 
-          </div>
+               <div class="label">Ville</div>
+               <div>
+                 ${escapeHtml(item.city)}
+               </div>
 
-          <div class="offer-preview">
-            ${escapeHtml(truncate(item.offerTerms))}
-          </div>
+               <div class="label">Région</div>
+               <div>
+                 ${escapeHtml(item.region)}
+               </div>
 
-        </div>
+               <div class="label">Téléphone</div>
+               <div>
+                 ${escapeHtml(item.phone)}
+               </div>
 
-      </div>
+               <div class="label">Email</div>
+               <div>
+                 ${escapeHtml(item.email)}
+               </div>
 
-      <details>
-        <summary>Détails</summary>
+               <div class="label">Site web</div>
+               <div>
+                 ${
+                   item.website
+                     ? `
+                   <a
+                     class="website-link"
+                     href="${item.website}"
+                     target="_blank"
+                   >
+                     ${escapeHtml(item.website)}
+                   </a>`
+                     : ""
+                 }
+               </div>
 
-        <div class="details-content">
+               <div class="label">Âge</div>
+               <div>
+                 ${item.ageFrom ?? "?"}
+                 -
+                 ${item.ageTo ?? "?"}
+               </div>
 
-          <div class="details-grid">
+               <div class="label">Coordonnées</div>
+               <div>
+                 ${item.lat ?? "-"},
+                 ${item.lon ?? "-"}
+               </div>
 
-            <div class="label">Adresse</div>
-            <div>
-              ${escapeHtml(item.address)}
-            </div>
+               <div class="label">Tags</div>
+               <div>
+                 ${escapeHtml(item.tags.join(", "))}
+               </div>
 
-            <div class="label">Ville</div>
-            <div>
-              ${escapeHtml(item.city)}
-            </div>
+             </div>
 
-            <div class="label">Région</div>
-            <div>
-              ${escapeHtml(item.region)}
-            </div>
+             <h3>Description complète</h3>
 
-            <div class="label">Téléphone</div>
-            <div>
-              ${escapeHtml(item.phone)}
-            </div>
+             <div class="offer-full">
+               ${escapeHtml(item.offerTerms)}
+             </div>
 
-            <div class="label">Email</div>
-            <div>
-              ${escapeHtml(item.email)}
-            </div>
+           </div>
 
-            <div class="label">Site web</div>
-            <div>
-              ${
-                item.website
-                  ? `
-                <a
-                  class="website-link"
-                  href="${item.website}"
-                  target="_blank"
-                >
-                  ${escapeHtml(item.website)}
-                </a>`
-                  : ""
-              }
-            </div>
-
-            <div class="label">Âge</div>
-            <div>
-              ${item.ageFrom ?? "?"}
-              -
-              ${item.ageTo ?? "?"}
-            </div>
-
-            <div class="label">Coordonnées</div>
-            <div>
-              ${item.lat ?? "-"},
-              ${item.lon ?? "-"}
-            </div>
-
-            <div class="label">Tags</div>
-            <div>
-              ${escapeHtml(item.tags.join(", "))}
-            </div>
-
-          </div>
-
-          <h3>Description complète</h3>
-
-          <div class="offer-full">
-            ${escapeHtml(item.offerTerms)}
-          </div>
-
-        </div>
-
-      </details>
-    `;
+         </details>
+       `;
 
           container.appendChild(card);
 
           if (item.lat !== null && item.lon !== null && !item.isOnline) {
             const popupHtml = `
-        <div class="marker-popup">
+           <div class="marker-popup">
 
-          
-          ${escapeHtml(item.locationName)}
 
-          <div>
-            <strong>${escapeHtml(item.name)}</strong>
-          </div>
+             ${escapeHtml(item.locationName)}
 
-          ${
-            item.website
-              ? `
-            <div>
-              <a
-                href="${item.website}"
-                target="_blank"
-              >
-                Site web
-              </a>
-            </div>`
-              : ""
-          }
+             <div>
+               <strong>${escapeHtml(item.name)}</strong>
+             </div>
 
-          <br>
+             ${
+               item.website
+                 ? `
+               <div>
+                 <a
+                   href="${item.website}"
+                   target="_blank"
+                 >
+                   Site web
+                 </a>
+               </div>`
+                 : ""
+             }
 
-          <button
-            onclick="
-              document
-                .getElementById('activity-${item.idx}')
-                .scrollIntoView({
-                  behavior:'smooth',
-                  block:'center'
-                });
-            "
-          >
-            Voir la fiche
-          </button>
+             <br>
 
-        </div>
-      `;
+             <button
+               onclick="
+                 document
+                   .getElementById('activity-${item.idx}')
+                   .scrollIntoView({
+                     behavior:'smooth',
+                     block:'center'
+                   });
+               "
+             >
+               Voir la fiche
+             </button>
+
+           </div>
+         `;
 
             L.marker([item.lat, item.lon])
               .bindPopup(popupHtml)
@@ -20703,8 +20719,8 @@
       }
 
       /* ==========================================================
-   EVENTS
-   ========================================================== */
+      EVENTS
+      ========================================================== */
 
       [categoryFilter, cityFilter, onlineOnly, sortBy, searchInput].forEach(
         (el) => {
